@@ -1,8 +1,8 @@
 import subprocess
+import socket
 
 class fetchAudio:
     def __init__(self, link):
-        self.audioBytes=b''
         self.link=link
 
     def commands(self):
@@ -38,6 +38,51 @@ class fetchAudio:
         else:
             print("error: ", error.decode())
 
-fetcher = fetchAudio(['https://www.youtube.com/watch?v=R8rlVgbNpEQ'])
-fetcher.commands()
-fetcher.downloading()
+        return self.result
+
+
+
+class sending:
+    def __init__(self, audioBytes, ip, port):
+        self.audioBytes=audioBytes
+        self.ip=ip
+        self.port=port
+        self.packetLength = 65535
+        self.packets=[]
+    
+    def setUpSender(self):
+        try:
+            self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect(self.ip, self.port)
+
+        except ConnectionRefusedError:
+            print('Connection refused. Retrying in Now seconds...')
+
+        except Exception as e:
+            print(f'An error occurred: {e}')
+            
+    def segmentAudio(self):
+        # read the string
+        # get the length of the string
+        self.audioLen = len(self.audioBytes)
+        # track the position that the loop has reached
+        self.currentPosition = 0
+
+        while self.currentPosition < self.audioLen:
+            self.segment = self.audioBytes[self.currentPosition:self.currentPosition + self.packetLength]
+            self.packets.append(self.segment)
+            self.currentPosition+=self.packetLength
+
+        print("packet length: ", len(self.packets))
+    def sendAudioBytes(self):
+        pass
+
+    
+
+if __name__ == "__main__":
+    downloadAud=fetchAudio(['https://www.youtube.com/watch?v=VAXg78MKJcM'])
+    downloadAud.commands()
+
+    sendAud = sending(downloadAud.downloading(), socket.gethostbyname(socket.gethostname()), 3256)
+    print("audio length: ", len(downloadAud.downloading()))
+    sendAud.segmentAudio()
